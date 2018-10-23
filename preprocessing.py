@@ -4,35 +4,41 @@ import string
 from nltk.stem import PorterStemmer
 import glob
 import os
+import sys
 
 
-def one_doc_preprocess(ar): #This is dataset-specific code. I think that you should name this method as "cacm_doc_preprocess"
+def one_doc_preprocess(ar, list_of_arguments):
     tree = ET.parse(ar)
     root = tree.getroot()
     stop_words = set(stopwords.words('english'))
     translator = str.maketrans('', '', string.punctuation)
     ps = PorterStemmer()
-    a = [elem.tag for elem in root.iter()] #for what reasons you created a-variable and didn't use it?
-    for docid in root.iter("DOCID"): #Do I understand correctly that one XML is containing only one document (one DOCID, title, body) ?
-        name = docid.text.replace(" ", "") #what if document doesn't contain name, title or other fields? I think that you should prevent strange errors with format checking 
-                                           # like if name == None then exit with message "document has invalid format"
+    for docid in root.iter("DOCID"):
+        if docid is None:
+            raise ValueError("document has invalid format")
+        name = docid.text.replace(" ", "")
+
     dest = "preprocessed_files"
     if not os.path.exists(dest):
         os.mkdir(dest)
-    for title in root.iter("TITLE"):
-        s = title.text.lower().replace("-", ' ').translate(translator).split() #see comment above
-    s = [w for w in s if w not in stop_words] #using of list generator is not a good idea, if document will have big size then this code may fail with out of memory
-                                              # you can rewrite it to for-loop with if statement in body like:
-                                              # for word in s:
-                                              #     if word not in stop_words:
-                                              #         ...
-    for w in s:
-        print(ps.stem(w), file=open(dest + '/' + name, "a")) #unfortunately I haven't cacm-dataset in such format and I cannot see output of script
-                                                             #but what about spaces between words? ps.stem(w) serialization gives word with spaces?
+    for argument in list_of_arguments:
+        s = []
+        for current_field in root.iter(argument):
+            if current_field is None:
+                raise ValueError("document has invalid format")
+            s = current_field.text.lower().replace("-", ' ')\
+                .translate(translator).split()
+        with open(dest + '/' + name, "a") as output_file:
+            for word in s:
+                if word not in stop_words:
+                    print(ps.stem(word), file=output_file)
 
 
-if __name__ == '__main__': #I think that this script should accept two parameters - directory of dataset and format of dataset and it define coverter method by format name 
-                           # My main point is that this tool will be used as preprocessor for each useful dataset and producing data in uniform format
-    list_of_names = glob.glob('cacm.ml/*.xml')
+if __name__ == '__main__':
+    path = 'cacm.ml/*.xml'
+    # path = sys.argv[1]
+    # is above a good way of reading path?
+    list_of_names = glob.glob(path)
+    list_of_fields = ["TITLE"]
     for i in list_of_names:
-        one_doc_preprocess(i)
+        one_doc_preprocess(i, list_of_fields)

@@ -7,7 +7,7 @@ import os
 import sys
 
 
-def one_doc_preprocess(ar, list_of_arguments):
+def one_doc_preprocess(ar, list_of_arguments, dictionary_of_all_terms):
     tree = ET.parse(ar)
     root = tree.getroot()
     stop_words = set(stopwords.words('english'))
@@ -21,6 +21,7 @@ def one_doc_preprocess(ar, list_of_arguments):
     dest = "preprocessed_files"
     if not os.path.exists(dest):
         os.mkdir(dest)
+    num_of_keys = len(dictionary_of_all_terms)
     for argument in list_of_arguments:
         s = []
         for current_field in root.iter(argument):
@@ -32,6 +33,9 @@ def one_doc_preprocess(ar, list_of_arguments):
             for word in s:
                 if word not in stop_words:
                     print(ps.stem(word), file=output_file)
+                    if word not in dictionary_of_all_terms.keys():
+                        num_of_keys += 1
+                        dictionary_of_all_terms[num_of_keys] = word
 
 
 if __name__ == '__main__':
@@ -40,5 +44,7 @@ if __name__ == '__main__':
     # is above a good way of reading path?
     list_of_names = glob.glob(path)
     list_of_fields = ["TITLE"]
+    dict_of_terms = {}
     for i in list_of_names:
-        one_doc_preprocess(i, list_of_fields)
+        one_doc_preprocess(i, list_of_fields, dict_of_terms)
+    print(dict_of_terms)

@@ -5,7 +5,8 @@ from nltk.stem import PorterStemmer
 import glob
 import os
 import pickle
-
+from numpy import array
+from scipy import sparse
 
 def one_doc_preprocess(ar, list_of_arguments, dictionary_of_all_terms):
     tree = ET.parse(ar)
@@ -36,6 +37,18 @@ def one_doc_preprocess(ar, list_of_arguments, dictionary_of_all_terms):
                         dictionary_of_all_terms[num_of_keys] = word
                         num_of_keys += 1
 
+def sparse_basis_vector_creation(i, n):
+    I = array([1])
+    J = array([0])
+    V = array([i])
+    return sparse.coo_matrix((V, (I, J)), shape=(n, 1))
+
+def creation_sparse_index(all_terms):
+    all_sparse_terms = {}
+    dimension = len(all_terms)
+    for key, value in all_terms.items():
+        all_sparse_terms[value] = sparse_basis_vector_creation(key, dimension)
+    return all_sparse_terms
 
 def preprocessing(path, list_of_fields):
     list_of_names = glob.glob(path)
@@ -62,4 +75,6 @@ if __name__ == '__main__':
     # path = sys.argv[1]
     list_of_fields = ["TITLE"]
     preprocessing(path, list_of_fields)
-    print(deserializeIndex("all_terms_in_dict"))
+    all_terms = deserializeIndex("all_terms_in_dict")
+    sparse_index = creation_sparse_index(all_terms)
+    serializeIndex(sparse_index, "sparse_terms")

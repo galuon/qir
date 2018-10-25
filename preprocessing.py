@@ -42,19 +42,18 @@ def preprocessing(path, list_of_fields):
     dict_of_terms = {}
     for i in list_of_names:
         one_doc_preprocess(i, list_of_fields, dict_of_terms)
-#    print(dict_of_terms, file=open("all_terms_in_dict", "w"))
     serializeIndex(dict_of_terms, "all_terms_in_dict")
 
 
 def serializeIndex(map, filepath):
-    file = open(filepath, "wb")
-    pickle.dump(map, file)
+    with open(filepath, "wb") as file:
+        pickle.dump(map, file)
 
 
 def deserializeIndex(filePath):
-    s = open(filePath, "rb").read()
-    all_terms_in_dict = pickle.loads(s)
-    return all_terms_in_dict
+    with open(filePath, "rb").read() as s:
+        all_terms_in_dict = pickle.loads(s)
+        return all_terms_in_dict
 
 
 if __name__ == '__main__':

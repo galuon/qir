@@ -4,7 +4,6 @@ import string
 from nltk.stem import PorterStemmer
 import glob
 import os
-import sys
 
 
 def one_doc_preprocess(ar, list_of_arguments, dictionary_of_all_terms):
@@ -17,7 +16,6 @@ def one_doc_preprocess(ar, list_of_arguments, dictionary_of_all_terms):
         if docid is None:
             raise ValueError("document has invalid format")
         name = docid.text.replace(" ", "")
-
     dest = "preprocessed_files"
     if not os.path.exists(dest):
         os.mkdir(dest)
@@ -34,17 +32,32 @@ def one_doc_preprocess(ar, list_of_arguments, dictionary_of_all_terms):
                 if word not in stop_words:
                     print(ps.stem(word), file=output_file)
                     if word not in dictionary_of_all_terms.keys():
-                        num_of_keys += 1
                         dictionary_of_all_terms[num_of_keys] = word
+                        num_of_keys += 1
+
+
+def preprocessing(path, list_of_fields):
+    list_of_names = glob.glob(path)
+    dict_of_terms = {}
+    for i in list_of_names:
+        one_doc_preprocess(i, list_of_fields, dict_of_terms)
+#    print(dict_of_terms, file=open("all_terms_in_dict", "w"))
+    serializeIndex(dict_of_terms, "all_terms_in_dict")
+
+
+def serializeIndex(map, filepath):
+    print(map, file=open(filepath, "w"))
+
+
+def deserializeIndex(filePath):
+    s = open(filePath, "r").read()
+    all_terms_in_dict = eval(s)
+    return all_terms_in_dict
 
 
 if __name__ == '__main__':
     path = 'cacm.ml/*.xml'
     # path = sys.argv[1]
-    # is above a good way of reading path?
-    list_of_names = glob.glob(path)
     list_of_fields = ["TITLE"]
-    dict_of_terms = {}
-    for i in list_of_names:
-        one_doc_preprocess(i, list_of_fields, dict_of_terms)
-    print(dict_of_terms, file=open("all_terms_in_dict", "w"))
+#    preprocessing(path, list_of_fields)
+    print(deserializeIndex("all_terms_in_dict"))

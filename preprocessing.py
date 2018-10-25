@@ -51,7 +51,8 @@ def serializeIndex(map, filepath):
 
 
 def deserializeIndex(filePath):
-    with open(filePath, "rb").read() as s:
+    with open(filePath, "rb") as file:
+        s = file.read()
         all_terms_in_dict = pickle.loads(s)
         return all_terms_in_dict
 

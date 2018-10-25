@@ -4,6 +4,7 @@ import string
 from nltk.stem import PorterStemmer
 import glob
 import os
+import pickle
 
 
 def one_doc_preprocess(ar, list_of_arguments, dictionary_of_all_terms):
@@ -46,12 +47,13 @@ def preprocessing(path, list_of_fields):
 
 
 def serializeIndex(map, filepath):
-    print(map, file=open(filepath, "w"))
+    file = open(filepath, "wb")
+    pickle.dump(map, file)
 
 
 def deserializeIndex(filePath):
-    s = open(filePath, "r").read()
-    all_terms_in_dict = eval(s)
+    s = open(filePath, "rb").read()
+    all_terms_in_dict = pickle.loads(s)
     return all_terms_in_dict
 
 
@@ -59,5 +61,5 @@ if __name__ == '__main__':
     path = 'cacm.ml/*.xml'
     # path = sys.argv[1]
     list_of_fields = ["TITLE"]
-#    preprocessing(path, list_of_fields)
+    preprocessing(path, list_of_fields)
     print(deserializeIndex("all_terms_in_dict"))

@@ -29,7 +29,7 @@ def one_doc_preprocess(ar, list_of_arguments, dictionary_of_all_terms):
                 raise ValueError("document has invalid format")
             s = current_field.text.lower().replace("-", ' ')\
                 .translate(translator).split()
-        with open(dest + '/' + name, "a") as output_file:
+        with open(dest + '/' + name, "w") as output_file:
             for word in s:
                 if word not in stop_words:
                     print(ps.stem(word), file=output_file)
@@ -47,4 +47,4 @@ if __name__ == '__main__':
     dict_of_terms = {}
     for i in list_of_names:
         one_doc_preprocess(i, list_of_fields, dict_of_terms)
-    print(dict_of_terms)
+    print(dict_of_terms, file=open("all_terms_in_dict", "w"))

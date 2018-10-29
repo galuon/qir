@@ -34,7 +34,7 @@ def one_doc_preprocess(ar, list_of_arguments, dictionary_of_all_terms):
                 if word not in stop_words:
                     print(ps.stem(word), file=output_file)
                     if word not in dictionary_of_all_terms.keys():
-                        dictionary_of_all_terms[num_of_keys] = word
+                        dictionary_of_all_terms[word] = num_of_keys
                         num_of_keys += 1
 
 def sparse_basis_vector_creation(i, n):
@@ -69,12 +69,24 @@ def deserializeIndex(filePath):
         all_terms_in_dict = pickle.loads(s)
         return all_terms_in_dict
 
+def sliding_window(size_of_window, docid, dictionary_of_all_terms):
+    with open(docid, 'r') as my_file:
+        data = my_file.read().split()
+    k = len(data) // size_of_window
+    dimension = len(dictionary_of_all_terms)
+    result = sparse.coo_matrix((1,dimension))
+    for e in range(0, size_of_window):
+        print(dictionary_of_all_terms.get(data[e]))
+#        result = sparse_basis_vector_creation(dictionary_of_all_terms[data[e]], dimension)
+
+
 
 if __name__ == '__main__':
     path = 'cacm.ml/*.xml'
     # path = sys.argv[1]
     list_of_fields = ["TITLE"]
-    preprocessing(path, list_of_fields)
+#    preprocessing(path, list_of_fields)
     all_terms = deserializeIndex("all_terms_in_dict")
-    sparse_index = creation_sparse_index(all_terms)
-    serializeIndex(sparse_index, "sparse_terms")
+    print(all_terms)
+    dest = "preprocessed_files"
+    sliding_window(1, dest + "/" + "1", all_terms)

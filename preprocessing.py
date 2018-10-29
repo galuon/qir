@@ -74,11 +74,13 @@ def sliding_window(size_of_window, docid, dictionary_of_all_terms):
         data = my_file.read().split()
     k = len(data) // size_of_window
     dimension = len(dictionary_of_all_terms)
-    result = sparse.coo_matrix((dimension, 1))
-    for e in range(0, size_of_window):
-#        print(dictionary_of_all_terms[0] == data[e])
-        result += sparse_basis_vector_creation(dictionary_of_all_terms[data[e]], dimension)
-
+    result = []
+    for l in range(0, k):
+        current_vector = sparse.coo_matrix((dimension, 1))
+        for e in range(0, size_of_window):
+            current_vector += sparse_basis_vector_creation(dictionary_of_all_terms[data[e]], dimension)
+        result.append(current_vector)
+    return result
 
 
 if __name__ == '__main__':

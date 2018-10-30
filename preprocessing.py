@@ -69,16 +69,17 @@ def deserializeIndex(filePath):
         all_terms_in_dict = pickle.loads(s)
         return all_terms_in_dict
 
-def sliding_window(size_of_window, docid, dictionary_of_all_terms):
+def sliding_window(size_of_window, docid, dict_of_all_terms):
     with open(docid, 'r') as my_file:
         data = my_file.read().split()
     k = len(data) // size_of_window
-    dimension = len(dictionary_of_all_terms)
+    dimension = len(dict_of_all_terms)
     result = []
-    for l in range(0, k):
+    for current_window in range(0, k):
         current_vector = sparse.coo_matrix((dimension, 1))
         for e in range(0, size_of_window):
-            current_vector += sparse_basis_vector_creation(dictionary_of_all_terms[data[e]], dimension)
+            current_vector +=\
+                sparse_basis_vector_creation(dict_of_all_terms[data[e + size_of_window * current_window ]], dimension)
         result.append(current_vector)
     return result
 
@@ -87,7 +88,7 @@ if __name__ == '__main__':
     path = 'cacm.ml/*.xml'
     # path = sys.argv[1]
     list_of_fields = ["TITLE"]
-    preprocessing(path, list_of_fields)
+#    preprocessing(path, list_of_fields)
     all_terms = deserializeIndex("all_terms_in_dict")
 #    print(all_terms)
     dest = "preprocessed_files"

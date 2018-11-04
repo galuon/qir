@@ -76,10 +76,9 @@ def sliding_window(size_of_window, docid, dict_of_all_terms):
     dimension = len(dict_of_all_terms)
     result = []
     for current_window in range(0, k):
-        current_vector = sparse.coo_matrix((dimension, 1))
+        current_vector = sparse.lil_matrix((dimension, 1))
         for e in range(0, size_of_window):
-            current_vector +=\
-                sparse_basis_vector_creation(dict_of_all_terms[data[e + size_of_window * current_window ]], dimension)
+            current_vector[(dict_of_all_terms[data[e + size_of_window * current_window ]], 0)] += 1
         result.append(current_vector)
     return result
 

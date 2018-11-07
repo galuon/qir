@@ -8,6 +8,7 @@ import pickle
 from numpy import array
 from scipy import sparse
 
+
 def one_doc_preprocess(ar, list_of_arguments, dictionary_of_all_terms):
     tree = ET.parse(ar)
     root = tree.getroot()
@@ -37,11 +38,13 @@ def one_doc_preprocess(ar, list_of_arguments, dictionary_of_all_terms):
                         dictionary_of_all_terms[ps.stem(word)] = num_of_keys
                         num_of_keys += 1
 
+
 def sparse_basis_vector_creation(i, n):
-    I = array([1])
+    T = array([1])
     J = array([0])
     V = array([i])
-    return sparse.coo_matrix((V, (I, J)), shape=(n, 1))
+    return sparse.coo_matrix((V, (T, J)), shape=(n, 1))
+
 
 def creation_sparse_index(all_terms):
     all_sparse_terms = {}
@@ -49,6 +52,7 @@ def creation_sparse_index(all_terms):
     for key, value in all_terms.items():
         all_sparse_terms[value] = sparse_basis_vector_creation(key, dimension)
     return all_sparse_terms
+
 
 def preprocessing(path, list_of_fields):
     list_of_names = glob.glob(path)
@@ -69,6 +73,7 @@ def deserializeIndex(filePath):
         all_terms_in_dict = pickle.loads(s)
         return all_terms_in_dict
 
+
 def sliding_window(size_of_window, docid, dict_of_all_terms):
     with open(docid, 'r') as my_file:
         data = my_file.read().split()
@@ -78,9 +83,18 @@ def sliding_window(size_of_window, docid, dict_of_all_terms):
     for current_window in range(0, k):
         current_vector = sparse.lil_matrix((dimension, 1))
         for e in range(0, size_of_window):
-            current_vector[(dict_of_all_terms[data[e + size_of_window * current_window ]], 0)] += 1
+            current_vector[(dict_of_all_terms[data[e + size_of_window *
+                                                   current_window]], 0)] += 1
         result.append(current_vector)
+    projector_contruction(result)
     return result
+
+
+def projector_contruction(dict_of_vectors, weight_distribution=None):
+    dimension = dict_of_vectors[0].shape[0]
+    s = sparse.lil_matrix((dimension, dimension))
+    for item in dict_of_vectors:
+        s += item.dot(item.transpose())
 
 
 if __name__ == '__main__':

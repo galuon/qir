@@ -93,8 +93,16 @@ def sliding_window(size_of_window, docid, dict_of_all_terms):
 def projector_contruction(dict_of_vectors, weight_distribution=None):
     dimension = dict_of_vectors[0].shape[0]
     s = sparse.lil_matrix((dimension, dimension))
-    for item in dict_of_vectors:
-        s += item.dot(item.transpose())
+    k = 0
+    if weight_distribution is not None:
+        for item in dict_of_vectors:
+            s += weight_distribution[k] * item.dot(item.transpose())
+            k += 1
+    else:
+        for item in dict_of_vectors:
+            s += item.dot(item.transpose())
+    vals, vecs = sparse.linalg.eigs(s, 25)
+    print(vals)
 
 
 if __name__ == '__main__':

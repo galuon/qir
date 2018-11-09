@@ -5,6 +5,8 @@ from nltk.stem import PorterStemmer
 import glob
 import os
 import pickle
+from numpy import array
+from scipy import sparse
 
 
 def one_doc_preprocess(ar, list_of_arguments, dictionary_of_all_terms):
@@ -33,8 +35,23 @@ def one_doc_preprocess(ar, list_of_arguments, dictionary_of_all_terms):
                 if word not in stop_words:
                     print(ps.stem(word), file=output_file)
                     if word not in dictionary_of_all_terms.keys():
-                        dictionary_of_all_terms[num_of_keys] = word
+                        dictionary_of_all_terms[ps.stem(word)] = num_of_keys
                         num_of_keys += 1
+
+
+def sparse_basis_vector_creation(i, n):
+    T = array([1])
+    J = array([0])
+    V = array([i])
+    return sparse.coo_matrix((V, (T, J)), shape=(n, 1))
+
+
+def creation_sparse_index(all_terms):
+    all_sparse_terms = {}
+    dimension = len(all_terms)
+    for key, value in all_terms.items():
+        all_sparse_terms[value] = sparse_basis_vector_creation(key, dimension)
+    return all_sparse_terms
 
 
 def preprocessing(path, list_of_fields):
@@ -57,9 +74,43 @@ def deserializeIndex(filePath):
         return all_terms_in_dict
 
 
+def sliding_window(size_of_window, docid, dict_of_all_terms):
+    with open(docid, 'r') as my_file:
+        data = my_file.read().split()
+    k = len(data) // size_of_window
+    dimension = len(dict_of_all_terms)
+    result = []
+    for current_window in range(0, k):
+        current_vector = sparse.lil_matrix((dimension, 1))
+        for e in range(0, size_of_window):
+            current_vector[(dict_of_all_terms[data[e + size_of_window *
+                                                   current_window]], 0)] += 1
+        result.append(current_vector)
+    projector_contruction(result)
+    return result
+
+
+def projector_contruction(dict_of_vectors, weight_distribution=None):
+    dimension = dict_of_vectors[0].shape[0]
+    s = sparse.lil_matrix((dimension, dimension))
+    k = 0
+    if weight_distribution is not None:
+        for item in dict_of_vectors:
+            s += weight_distribution[k] * item.dot(item.transpose())
+            k += 1
+    else:
+        for item in dict_of_vectors:
+            s += item.dot(item.transpose())
+    vals, vecs = sparse.linalg.eigs(s, 25)
+    print(vals)
+
+
 if __name__ == '__main__':
     path = 'cacm.ml/*.xml'
     # path = sys.argv[1]
     list_of_fields = ["TITLE"]
-    preprocessing(path, list_of_fields)
-    print(deserializeIndex("all_terms_in_dict"))
+#    preprocessing(path, list_of_fields)
+    all_terms = deserializeIndex("all_terms_in_dict")
+#    print(all_terms)
+    dest = "preprocessed_files"
+    sliding_window(1, dest + "/" + "1", all_terms)
